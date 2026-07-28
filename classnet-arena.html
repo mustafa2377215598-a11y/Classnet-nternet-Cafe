@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Classnet Arena</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Barlow:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0a0a0b;
+    --bg-raised: #141416;
+    --bg-card: #1a1a1c;
+    --yellow: #ffc400;
+    --yellow-dim: #b88900;
+    --amber: #ff9d00;
+    --ink: #f4f2ea;
+    --ink-dim: #8f8d87;
+    --line: #2a2a2c;
+    --vip-glow: rgba(255,196,0,.18);
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Barlow', sans-serif;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  body::before{
+    content:"";
+    position:fixed; inset:0;
+    background-image:
+      linear-gradient(rgba(255,196,0,.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,196,0,.035) 1px, transparent 1px);
+    background-size: 42px 42px;
+    pointer-events:none;
+    z-index:0;
+    mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 40%, transparent 100%);
+  }
+  h1,h2,h3, .display{
+    font-family:'Rajdhani', sans-serif;
+    text-transform:uppercase;
+    letter-spacing:.02em;
+  }
+  .mono{font-family:'JetBrains Mono', monospace;}
+  a{color:inherit; text-decoration:none;}
+  .wrap{max-width:1080px; margin:0 auto; padding:0 24px; position:relative; z-index:1;}
+
+  /* ---- top bar ---- */
+  .topbar{
+    position:sticky; top:0; z-index:50;
+    background:rgba(10,10,11,.85);
+    backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--line);
+  }
+  .topbar-inner{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:16px 24px; max-width:1080px; margin:0 auto;
+  }
+  .brand{font-family:'Rajdhani',sans-serif; font-weight:700; font-size:1.35rem; letter-spacing:.03em;}
+  .brand span{color:var(--yellow);}
+  .status-chip{
+    display:flex; align-items:center; gap:8px;
+    border:1px solid var(--line); border-radius:999px;
+    padding:6px 14px 6px 10px;
+    font-family:'JetBrains Mono',monospace; font-size:.72rem;
+    letter-spacing:.05em;
+  }
+  .dot{width:8px; height:8px; border-radius:50%; background:#3a3a3c; flex-shrink:0;}
+  .dot.on{background:#3ddc6b; box-shadow:0 0 8px #3ddc6b;}
+  .dot.off{background:#ff5050; box-shadow:0 0 8px #ff5050;}
+
+  /* ---- hero ---- */
+  .hero{
+    padding:96px 24px 72px;
+    text-align:center;
+    position:relative; z-index:1;
+  }
+  .eyebrow{
+    font-family:'JetBrains Mono',monospace;
+    color:var(--yellow); font-size:.78rem; letter-spacing:.25em;
+    text-transform:uppercase; margin-bottom:22px; opacity:.85;
+  }
+  .hero h1{
+    font-size:clamp(3rem, 9vw, 6.5rem);
+    font-weight:700;
+    line-height:.92;
+    color:var(--ink);
+    text-shadow: 0 0 40px var(--vip-glow);
+  }
+  .hero h1 em{
+    font-style:normal;
+    color:var(--yellow);
+    display:block;
+    animation:flicker 6s infinite;
+  }
+  @keyframes flicker{
+    0%,92%,100%{opacity:1;}
+    93%{opacity:.4;}
+    94%{opacity:1;}
+    95%{opacity:.5;}
+    96%{opacity:1;}
+  }
+  .hero p.tag{
+    margin-top:22px; color:var(--ink-dim); font-size:1.05rem;
+    max-width:520px; margin-left:auto; margin-right:auto;
+  }
+  .hero-actions{
+    display:flex; gap:14px; justify-content:center; margin-top:36px; flex-wrap:wrap;
+  }
+  .btn{
+    display:inline-flex; align-items:center; gap:8px;
+    padding:14px 28px;
+    font-family:'Rajdhani',sans-serif; font-weight:600; letter-spacing:.04em;
+    text-transform:uppercase; font-size:.95rem;
+    border-radius:4px;
+    transition:transform .15s ease, box-shadow .15s ease;
+  }
+  .btn-primary{ background:var(--yellow); color:#0a0a0b; }
+  .btn-primary:hover{ transform:translateY(-2px); box-shadow:0 8px 24px rgba(255,196,0,.3); }
+  .btn-ghost{ border:1px solid var(--line); color:var(--ink); }
+  .btn-ghost:hover{ border-color:var(--yellow); color:var(--yellow); }
+
+  /* ---- section shell ---- */
+  section{ padding:64px 24px; position:relative; z-index:1; }
+  .section-head{ display:flex; align-items:baseline; gap:16px; margin-bottom:36px; }
+  .section-head .num{ font-family:'JetBrains Mono',monospace; color:var(--yellow-dim); font-size:.9rem; }
+  .section-head h2{ font-size:clamp(1.6rem, 4vw, 2.2rem); }
+  .section-head .rule{ flex:1; height:1px; background:var(--line); }
+
+  /* ---- masalar (scoreboard cards) ---- */
+  .board{ display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+  @media (max-width:640px){ .board{ grid-template-columns:1fr; } }
+  .card{
+    background:var(--bg-card);
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:32px 28px;
+    position:relative;
+    overflow:hidden;
+  }
+  .card.vip{ border-color:var(--yellow-dim); background:linear-gradient(160deg, rgba(255,196,0,.07), var(--bg-card) 60%); }
+  .card .tier{ font-family:'JetBrains Mono',monospace; font-size:.72rem; letter-spacing:.15em; color:var(--ink-dim); }
+  .card.vip .tier{ color:var(--yellow); }
+  .card h3{ font-size:1.9rem; margin:10px 0 18px; }
+  .card-row{ display:flex; justify-content:space-between; align-items:baseline; padding:10px 0; border-top:1px solid var(--line); }
+  .card-row:first-of-type{ border-top:none; }
+  .card-row .label{ color:var(--ink-dim); font-size:.92rem; }
+  .card-row .val{ font-family:'JetBrains Mono',monospace; font-size:1.1rem; font-weight:700; }
+  .card.vip .card-row .val{ color:var(--yellow); }
+  .price-big{ font-family:'JetBrains Mono',monospace; font-size:2.6rem; font-weight:700; margin-top:6px; }
+  .price-big span{ font-size:1rem; color:var(--ink-dim); font-weight:500; }
+
+  /* ---- schedule ---- */
+  .schedule{
+    background:var(--bg-card); border:1px solid var(--line); border-radius:8px; overflow:hidden;
+  }
+  .sched-row{
+    display:grid; grid-template-columns:1fr auto; gap:12px;
+    padding:16px 24px; border-bottom:1px solid var(--line);
+    font-family:'JetBrains Mono',monospace; font-size:.95rem;
+  }
+  .sched-row:last-child{ border-bottom:none; }
+  .sched-row .days{ color:var(--ink); font-family:'Barlow',sans-serif; font-weight:500; }
+  .sched-row .hrs{ color:var(--yellow); font-weight:700; }
+  .sched-row.today{ background:rgba(255,196,0,.06); }
+
+  /* ---- contact ---- */
+  .contact-grid{ display:grid; grid-template-columns:1.2fr 1fr; gap:20px; }
+  @media (max-width:720px){ .contact-grid{ grid-template-columns:1fr; } }
+  .info-card{
+    background:var(--bg-card); border:1px solid var(--line); border-radius:8px; padding:28px;
+  }
+  .info-line{ display:flex; gap:14px; padding:14px 0; border-top:1px solid var(--line); }
+  .info-line:first-child{ border-top:none; }
+  .info-line .k{ color:var(--yellow); font-family:'JetBrains Mono',monospace; font-size:.7rem; letter-spacing:.1em; width:90px; flex-shrink:0; padding-top:3px; }
+  .info-line .v{ font-size:1rem; }
+  .info-line a.v:hover{ color:var(--yellow); }
+
+  footer{
+    padding:32px 24px 40px; text-align:center; color:var(--ink-dim); font-size:.8rem;
+    border-top:1px solid var(--line); font-family:'JetBrains Mono',monospace; letter-spacing:.05em;
+  }
+  footer span{ color:var(--yellow); }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">CLASSNET<span>ARENA</span></div>
+    <div class="status-chip">
+      <span class="dot" id="statusDot"></span>
+      <span id="statusText">—</span>
+    </div>
+  </div>
+</div>
+
+<section class="hero">
+  <div class="wrap">
+    <div class="eyebrow">Yeşilova · İzmir</div>
+    <h1>OYUN<br><em>ZAMANI</em></h1>
+    <p class="tag">44 masa, VIP ve normal seçenekleriyle Classnet Arena'da. Haftanın her günü açığız.</p>
+    <div class="hero-actions">
+      <a class="btn btn-primary" href="tel:05373687222">📞 Hemen Ara</a>
+      <a class="btn btn-ghost" href="https://www.instagram.com/classnetarena/" target="_blank" rel="noopener">Instagram'da Takip Et</a>
+    </div>
+  </div>
+</section>
+
+<section id="masalar">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="num">01</span>
+      <h2>Masalar & Fiyatlar</h2>
+      <div class="rule"></div>
+    </div>
+    <div class="board">
+      <div class="card vip">
+        <div class="tier">★ VIP MASA</div>
+        <h3>35 Masa</h3>
+        <div class="price-big">40₺ <span>/ saat</span></div>
+        <div class="card-row"><span class="label">Toplam VIP masa</span><span class="val">35</span></div>
+      </div>
+      <div class="card">
+        <div class="tier">NORMAL MASA</div>
+        <h3>9 Masa</h3>
+        <div class="price-big">30₺ <span>/ saat</span></div>
+        <div class="card-row"><span class="label">Toplam normal masa</span><span class="val">9</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="saatler">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="num">02</span>
+      <h2>Çalışma Saatleri</h2>
+      <div class="rule"></div>
+    </div>
+    <div class="schedule" id="scheduleList">
+      <div class="sched-row" data-days="1,2,3,4"><span class="days">Pazartesi – Perşembe</span><span class="hrs">10:00 — 00:00</span></div>
+      <div class="sched-row" data-days="5,6,0"><span class="days">Cuma – Pazar</span><span class="hrs">10:00 — 02:00</span></div>
+    </div>
+  </div>
+</section>
+
+<section id="iletisim">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="num">03</span>
+      <h2>Konum & İletişim</h2>
+      <div class="rule"></div>
+    </div>
+    <div class="contact-grid">
+      <div class="info-card">
+        <div class="info-line"><span class="k">ADRES</span><span class="v">Yeşilova Mah. 4027/1 Sk. No 34/A</span></div>
+        <div class="info-line"><span class="k">TELEFON</span><a class="v" href="tel:05373687222">0537 368 72 22</a></div>
+        <div class="info-line"><span class="k">INSTAGRAM</span><a class="v" href="https://www.instagram.com/classnetarena/" target="_blank" rel="noopener">@classnetarena</a></div>
+      </div>
+      <div class="info-card">
+        <div class="info-line"><span class="k">HAFTA İÇİ</span><span class="v">10:00 – 00:00</span></div>
+        <div class="info-line"><span class="k">HAFTA SONU</span><span class="v">10:00 – 02:00 <br><span style="color:var(--ink-dim); font-size:.85rem;">(Cuma – Pazar)</span></span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <span>CLASSNET ARENA</span> — Yeşilova, İzmir
+</footer>
+
+<script>
+  function pad(n){ return n.toString().padStart(2,'0'); }
+
+  function getStatus(){
+    const now = new Date();
+    const day = now.getDay(); // 0 Sun .. 6 Sat
+    const mins = now.getHours()*60 + now.getMinutes();
+    const open = 10*60; // 10:00
+    // Mon(1)-Thu(4): close 00:00 (i.e. midnight, same-day 24:00)
+    // Fri(5)-Sun(0)/Sat(6): close 02:00 next day
+    let isOpen = false;
+    if(day>=1 && day<=4){
+      isOpen = mins >= open && mins < 24*60;
+    } else if(day===5 || day===6){
+      isOpen = mins >= open || mins < 2*60;
+    } else if(day===0){
+      // Sunday: was Fri-Sun close 02:00, so Sunday early morning still open until 02:00,
+      // and Sunday 10:00 onward open until 02:00 (rolls into Monday)
+      isOpen = mins >= open || mins < 2*60;
+    }
+    return isOpen;
+  }
+
+  function updateStatus(){
+    const dot = document.getElementById('statusDot');
+    const text = document.getElementById('statusText');
+    const isOpen = getStatus();
+    dot.className = 'dot ' + (isOpen ? 'on' : 'off');
+    text.textContent = isOpen ? 'AÇIK' : 'KAPALI';
+
+    // highlight today's schedule row
+    const now = new Date();
+    document.querySelectorAll('.sched-row').forEach(row=>{
+      const days = row.dataset.days.split(',').map(Number);
+      row.classList.toggle('today', days.includes(now.getDay()));
+    });
+  }
+  updateStatus();
+  setInterval(updateStatus, 30000);
+</script>
+
+</body>
+</html>
